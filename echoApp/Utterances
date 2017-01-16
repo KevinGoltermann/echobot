@@ -7,14 +7,11 @@ Initiate Blink
 TakeOff Take Off
 TakeOff Fly the drone
 TakeOff Hover
-TakeOff Go Up
 TakeOff Blink
-Land Land the drone
 Stop Stop
-Land Sleep
-Land Go Down 
-Land Land
 Straight Straight
 Back Back
-Right Right
 Left Left
+Right Right
+Up Up
+Patrol Patrol

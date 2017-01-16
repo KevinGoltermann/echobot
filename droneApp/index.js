@@ -1,7 +1,7 @@
 var pubnub = require("pubnub")({
     ssl           : true,  // <- enable TLS Tunneling over TCP 
-    publish_key   : "pub-c-5c099dc9-4fb8-41d4-a462-54224a4f47d7",
-    subscribe_key : "sub-c-78d941e8-d9b7-11e6-b9cf-02ee2ddab7fe"
+    publish_key   : "pub-c-......",
+    subscribe_key : "sub-c-......"
 });
 
 var five = require("johnny-five");

@@ -10,179 +10,250 @@
 
 var pubnub = require("pubnub")({
     ssl           : true,  // <- enable TLS Tunneling over TCP 
-    publish_key   : "pub-c-5c099dc9-4fb8-41d4-a462-54224a4f47d7",
-    subscribe_key : "sub-c-78d941e8-d9b7-11e6-b9cf-02ee2ddab7fe"
+    publish_key   : "pub-c-.......",
+    subscribe_key : "sub-c-......."
 });
 
 var RollingSpider = require("rolling-spider");
+var temporal = require("temporal")
+var ACTIVE = true;
+var STEPS = 2;
+
+RollingSpider.prototype.patrol = function(){
+    temporal.queue([
+      {
+        delay: 5000,
+        task: function () {
+          // rollingSpider.flatTrim();
+          rollingSpider.forward({ speed: 50, steps: 50 });
+          // rollingSpider.startPing();
+          console.log('Forward 50 steps');
+          cooldown();
+        }
+      },
+      {
+        delay: 5000,
+        task: function () {
+          // rollingSpider.flatTrim();
+          rollingSpider.counterClockwise({ speed: 50, steps: 40 });
+          // rollingSpider.startPing();
+          console.log('Turn Left 50 steps');
+          cooldown();
+        }
+      },
+      {
+      	delay: 5000,
+      	task: function(){
+      	  // rollingSpider.flatTrim();
+      	  rollingSpider.forward({ speed: 50, steps: 50 });
+      	  // rollingSpider.startPing();
+      	  console.log('Forward 50 steps');
+      	  cooldown();
+      	}
+      },
+      {
+        delay: 5000,
+        task: function () {
+          temporal.clear();
+          cooldown();
+        }
+      }
+      // {
+      //   delay: 1500,
+      //   task: function () {
+      //     rollingSpider.forward();
+      //     rollingSpider.flatTrim();
+      //     console.log('Forward');
+      //   }
+      // },
+      // {
+      //   delay: 1500,
+      //   task: function () {
+      //     rollingSpider.counterClockwise();
+      //     rollingSpider.flatTrim();
+      //     console.log('Turn Left');
+      //   }
+      // },
+      // {
+      //   delay: 1500,
+      //   task: function () {
+      //     rollingSpider.forward();
+      //     rollingSpider.flatTrim();
+      //     console.log('Forward');
+      //   }
+      // },  
+      // {
+      //   delay: 1500,
+      //   task: function () {
+      //     rollingSpider.counterClockwise();
+      //     rollingSpider.flatTrim();
+      //     console.log('Turn Left');
+      //   }
+      // }, 
+      // {
+      //   delay: 1500,
+      //   task: function () {
+      //     rollingSpider.forward();
+      //     rollingSpider.flatTrim();
+      //     console.log('Forward');
+      //   }
+      // }, 
+      // {
+      //   delay: 1500,
+      //   task: function () {
+      //     rollingSpider.counterClockwise();
+      //     rollingSpider.flatTrim();
+      //     console.log('Turn Left');
+      //   }
+      // }                   
+    ]);
+};
+
 var rollingSpider = new RollingSpider();
 var temporal = require('temporal');
-
-var STEPS = 2;
 // NEW CODE BELOW HERE
 
-rollingSpider.connect(function () {
-    rollingSpider.flatTrim();
-    rollingSpider.startPing();
-    rollingSpider.flatTrim();
-  	console.log('Connected to drone', rollingSpider.name);
+function cooldown() {
+  ACTIVE = false;
+  setTimeout(function () {
+    ACTIVE = true;
+  }, STEPS * 12);
+}
 
-	pubnub.subscribe({
-	channel  : "my_channel",
-	callback : function(message) {
-			console.log( " > ", message );
-			console.log(message.command);
-			
-			switch(message.command) {
-    		case "initiate":
-        		//code block
-			console.log("initiate");
-			rollingSpider.flatTrim();
-    			rollingSpider.startPing();
-    			rollingSpider.flatTrim();
-        		break;
-    		case "takeOff":
-        		//code block
-		        console.log("take Off");
-			rollingSpider.takeOff();
-			rollingSpider.flatTrim();
-        		
-			break;
-    		case "straight":
-        		//code block
-		        console.log("flying straight");
-			rollingSpider.forward();	
-			break;
-    		case "back":
-        		//code block
-		        console.log("flying back");
-			rollingSpider.backward();	
-			break;		
-    		case "right":
-        		//code block
-		        console.log("flying right");
-			rollingSpider.right();	
-			break;	
-    		case "left":
-        		//code block
-		        console.log("flying left");
-			rollingSpider.left();	
-			break;						
-			case "stop":
-        		//code block
-				rollingSpider.land();
-			    break;
-    		default:
-        		//default code block
-			}
-		}
+
+rollingSpider.connect(function () {
+	rollingSpider.setup(function(){
+
+	    rollingSpider.flatTrim();
+	    rollingSpider.startPing();
+	    rollingSpider.flatTrim();
+
+	  	console.log('Connected to drone', rollingSpider.name);
+		console.log('Strength: ', rollingSpider.signalStrength(callback));
+
+		setTimeout(function () {
+      		console.log('ready for flight');
+      		ACTIVE = true;
+    	}, 1000);
 	});
 });
 
-/*
-var Cylon = require('cylon');
 
-Cylon.robot({
+pubnub.subscribe({
+		channel  : "my_channel",
+		callback : function(message) {
+				console.log( " > ", message );
+				console.log(message.command);
+				console.log(rollingSpider.status)
+				switch(message.command) {
+	   //  		case "initiate":
+	   //      		//code block
+				// console.log("initiate");
+				// console.log(rollingSpider.status)
 
-	connections: {
-		'rolling-spider': {adaptor: 'rolling-spider', uuid: 'd2edda91562142e988ffcb4a595f8cd9'}
-	},
+				// 	rollingSpider.flatTrim();
+	   //  			rollingSpider.startPing(function(){ console.log('Pinging...') });
+	   //  			rollingSpider.flatTrim();
+	   //  		break;
+	    		case "takeOff":
+	        		//code block
+			        console.log("take Off");
+					rollingSpider.flatTrim();
+					rollingSpider.takeOff();
+					rollingSpider.startPing();
+					console.log(rollingSpider.connected);
+					cooldown();
+					console.log(rollingSpider.status)
+				break;
+	    		case "straight":
+	        		//code block
+			        console.log("flying straight");
+					rollingSpider.forward();
+					rollingSpider.startPing();
+					cooldown();
+					console.log(rollingSpider.status)
+				break;
+	    		case "back":
+	        		//code block
+			        console.log("flying back");
+					rollingSpider.backward();
+					rollingSpider.startPing();
+					cooldown();
+					console.log(rollingSpider.status)
+				break;		
+	    		case "right":
+	        		//code block
+			        console.log("flying right");
+					rollingSpider.right();
+					rollingSpider.startPing();
+					cooldown();
+					console.log(rollingSpider.status)
+				break;	
+	    		case "left":
+	        		//code block
+			        console.log("flying left");
+					rollingSpider.left();
+					rollingSpider.startPing();
+					cooldown();
+					console.log(rollingSpider.status)
 
-	devices: {
-		drone: {driver: 'rolling-spider'}
-	},
-
-	work: function (my) {
-
-		my.drone.wheelOn();
-		my.drone.flatTrim();
-		*/
-		
-		/*my.drone.wheelOn();
-
-		my.drone.flatTrim();
-
-		my.drone.takeOff();
-
-		after(2500, function () {
-
-			my.drone.land();
-
-			after(1500, function () {
-
-				Cylon.halt();
-
-			});
-
-		});*/
-		
-		/*
-		my.leap.on('frame', function(frame){
-			//console.log('frame');
-			if(frame.hands.length > 0){
-				my.drone.takeOff();
-				console.log('take off');
-			} else {
-				my.drone.land();
-				console.log('land');
+				break;	
+	    		case "up":
+	        		//code block
+			        console.log("flying up");
+					rollingSpider.up();
+					rollingSpider.startPing();
+					cooldown();
+					console.log(rollingSpider.status)
+				break;	
+	    		case "down":
+	        		//code block
+			        console.log("flying down");
+					rollingSpider.down();
+					rollingSpider.startPing();
+					cooldown();
+					console.log(rollingSpider.status)
+				break;	
+	    		case "turn left":
+	        		//code block
+			        console.log("turning left");
+					rollingSpider.turnLeft();
+					rollingSpider.startPing();
+					cooldown();
+					console.log(rollingSpider.status)
+				break;		
+	    		case "turn right":
+	        		//code block
+			        console.log("turning right");
+					rollingSpider.turnRight();
+					rollingSpider.startPing();
+					cooldown();
+					console.log(rollingSpider.status)
+				break;
+	    		case "patrol":
+	        		//code block
+			        console.log("patroling....");
+					rollingSpider.patrol();
+					rollingSpider.startPing();
+					cooldown();
+					console.log(rollingSpider.status)
+				break;																
+				case "stop":
+	        		//code block
+	        		temporal.clear();
+					rollingSpider.land();
+					rollingSpider.startPing();
+					cooldown();
+					console.log(rollingSpider.status)
+			    break;
+	    		default:
+	        		//default code block
+	    			console.log('Invalid Command');
+    			break;
+				}
 			}
+		});
 
-			if(frame.valid && frame.gestures.length > 0){
-				frame.gestures.forEach(function(g){
-					if(g.type == 'swipe'){
-						var currentPosition = g.position;
-						var startPosition = g.startPosition;
-
-						var xDirection = currentPosition[0] - startPosition[0];
-						var yDirection = currentPosition[1] - startPosition[1];
-						var zDirection = currentPosition[2] - startPosition[2];
-
-						var xAxis = Math.abs(xDirection);
-						var yAxis = Math.abs(yDirection);
-						var zAxis = Math.abs(zDirection);
-
-						var superiorPosition  = Math.max(xAxis, yAxis, zAxis);
-
-						if(superiorPosition === xAxis){
-							if(xDirection < 0){
-								console.log('LEFT');
-								my.drone.left({steps: 1});
-							} else {
-								my.drone.right({steps: 1});
-								console.log('RIGHT');
-							}
-						}
-
-						if(superiorPosition === zAxis){
-							if(zDirection > 0){
-								console.log('BACKWARDS');
-								my.drone.backward({steps: 1});
-							} else {
-								console.log('FORWARD');
-								my.drone.forward({steps: 1});
-							}
-						}
-
-						if(superiorPosition === yAxis){
-							if(yDirection > 0){
-								console.log('UP');
-								my.drone.up({steps: 1});
-							} else {
-								console.log('DOWN');
-								my.drone.down({steps: 1});
-							}
-						}
-					} else if(g.type === 'keyTap'){
-						my.drone.backFlip();
-						after((5).seconds(), function(){
-							my.drone.land();
-							console.log('land');
-						})
-					}
-				})
-			}
-		})*/
-	/*}
-
-}).start();
-*/
+function callback(i, strength){
+	console.log(i, strength);
+}
